@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اسکریپت موتور جستجوی اورابل (Orabel v3.0.0)</title>
+    <!-- لینک مستقیم فونت وزیر -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        :root {
+            --bg-body: #05070e;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(30, 41, 59, 0.9);
+            --accent-primary: #6366f1;
+            --accent-secondary: #06b6d4;
+            --accent-pink: #ec4899;
+            --text-title: #ffffff;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --gradient-text: linear-gradient(135deg, #38bdf8, #818cf8, #ec4899);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Vazir', Tahoma, sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-body);
+            line-height: 1.8;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* افکت حرکت موس (Custom Mouse Cursor & Trail) */
+        .cursor-dot, .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #38bdf8;
+            box-shadow: 0 0 10px #38bdf8;
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(99, 102, 241, 0.6);
+            background: rgba(99, 102, 241, 0.05);
+            transition: transform 0.1s ease-out;
+        }
+
+        /* ذرات پس‌زمینه پویا */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatParticle 12s infinite linear;
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* کلیک راست سفارشی اختصاصی اورابل ورژن 3.0.0 */
+        .custom-context-menu {
+            position: fixed;
+            display: none;
+            z-index: 10000;
+            width: 240px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 16px;
+            padding: 8px 0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(99, 102, 241, 0.3);
+            animation: menuFadeIn 0.2s ease-out;
+        }
+
+        @keyframes menuFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .ctx-header {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #818cf8;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ctx-item {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            color: var(--text-body);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ctx-item:hover {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.25), transparent);
+            color: #fff;
+            padding-right: 22px;
+        }
+
+        .ctx-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 6px 0;
+        }
+
+        /* Hero Header */
+        header {
+            padding: 100px 20px 60px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 28px;
+            border-radius: 35px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+            animation: pulseBadge 3s infinite alternate;
+        }
+
+        @keyframes pulseBadge {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+            100% { transform: scale(1.05); box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+        }
+
+        h1.hero-title {
+            font-size: 3.8rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        p.hero-desc {
+            font-size: 1.35rem;
+            color: var(--text-muted);
+            max-width: 950px;
+            margin: 0 auto 50px;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 20px 100px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Video Showcase Section */
+        .video-wrapper {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border-radius: 28px;
+            padding: 28px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            margin-bottom: 90px;
+            position: relative;
+            overflow: hidden;
+            animation: floatBox 5s ease-in-out infinite;
+        }
+
+        @keyframes floatBox {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .video-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .video-header h2 {
+            font-size: 1.6rem;
+            color: var(--text-title);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* کارت ویژه Siri AI Overview */
+        .siri-ai-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 28px;
+            padding: 40px;
+            margin-bottom: 90px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(168, 85, 247, 0.25);
+        }
+
+        .siri-glow-bg {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(236, 72, 153, 0.15), rgba(99, 102, 241, 0.15), transparent 60%);
+            animation: siriRotate 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes siriRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .siri-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .siri-title-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* انیمیشن گوی یا هاله‌ نئونی Siri Wave */
+        .siri-orb {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #ec4899);
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.8), 0 0 40px rgba(56, 189, 248, 0.8);
+            animation: siriPulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes siriPulse {
+            0% { transform: scale(0.9) rotate(0deg); box-shadow: 0 0 15px rgba(236, 72, 153, 0.6); }
+            100% { transform: scale(1.15) rotate(180deg); box-shadow: 0 0 35px rgba(56, 189, 248, 0.9); }
+        }
+
+        .siri-content {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            font-size: 1.05rem;
+            line-height: 1.9;
+            color: #f1f5f9;
+        }
+
+        /* Section Headers */
+        .version-section-header {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin: 80px 0 40px;
+            padding-bottom: 18px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .version-tag {
+            padding: 8px 22px;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        }
+
+        .version-v3 { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
+        .version-v2 { background: linear-gradient(135deg, #8b5cf6, #3b82f6); }
+        .version-v1 { background: linear-gradient(135deg, #06b6d4, #10b981); }
+
+        .version-section-header h2 {
+            font-size: 2.2rem;
+            color: var(--text-title);
+            letter-spacing: -0.5px;
+        }
+
+        /* Features Grid & Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(370px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 36px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #38bdf8, #6366f1, #ec4899);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: var(--bg-card-hover);
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .card-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: rgba(99, 102, 241, 0.35);
+            color: #fff;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            color: var(--text-title);
+            margin-bottom: 14px;
+        }
+
+        .feature-card p {
+            color: var(--text-body);
+            font-size: 0.98rem;
+            line-height: 1.85;
+        }
+
+        .tag-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .tag {
+            font-size: 0.8rem;
+            padding: 5px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a5b4fc;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: background 0.2s;
+        }
+
+        .tag:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: #fff;
+        }
+
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+            background: rgba(5, 7, 14, 0.95);
+            position: relative;
+            z-index: 2;
+        }
+
+        @media (max-width: 768px) {
+            h1.hero-title { font-size: 2.5rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .cursor-dot, .cursor-outline { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- منوی کلیک راست اختصاصی اورابل ورژن 3.0.0 -->
+    <div class="custom-context-menu" id="context-menu">
+        <div class="ctx-header">
+            <span>اورابل ورژن 3.0.0</span>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div class="ctx-item" onclick="window.history.back()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> بازگشت
+        </div>
+        <div class="ctx-item" onclick="location.reload()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/></svg> بازخوانی صفحه
+        </div>
+        <div class="ctx-divider"></div>
+        <div class="ctx-item" onclick="navigator.clipboard.writeText(window.location.href)">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg> کپی آدرس صفحه
+        </div>
+        <div class="ctx-item" onclick="alert('اورابل نسخه ۳ (Orabel v3.0.0) — موتور جستجوی هوشمند اورابل')">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> درباره سیستم
+        </div>
+    </div>
+
+    <!-- افکت موس پویا -->
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-outline" id="cursor-outline"></div>
+
+    <!-- ذرات پس‌زمینه -->
+    <div class="bg-particles" id="particles"></div>
+
+    <header>
+        <div class="hero-badge">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            اورابل نسخه ۳ (Orabel v3.0.0) 
+        </div>
+        <h1 class="hero-title">اولین و تنها اسکریپت موتور جستجو ایرانی</h1>
+        <p class="hero-desc">اسکریپت موتور جستجو اورابل اولین و تنها موتور جستجو ایرانی و ششمین موتور جستجو در دنیا هست!</p>
+    </header>
+
+    <div class="container">
+        <!-- Aparat Video Showcase -->
+        <div class="video-wrapper">
+            <div class="video-header">
+                <h2>
+                    <svg width="26" height="26" fill="none" stroke="#818cf8" stroke-width="2" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    پیش‌نمایش ویدیویی قابلیت‌ها و محیط اسکریپت اورابل
+                </h2>
+                <span class="tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16,185,129,0.4);">پخش آنلاین HD</span>
+            </div>
+            <div class="video-container">
+                <!-- جایگذاری آی‌فریم ویدیوی آپارات -->
+                <iframe src="https://www.aparat.com/video/video/embed/videohash/YOUR_VIDEO_HASH/vt/frame" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+            </div>
+        </div>
+
+        <!-- کارت انیمیشنی Siri AI Overview -->
+        <div class="siri-ai-card">
+            <div class="siri-glow-bg"></div>
+            <div class="siri-header">
+                <div class="siri-title-group">
+                    <div class="siri-orb"></div>
+                    <h2 style="font-size: 1.6rem; color: #fff;">پاسخ هوشمند AI Overview (در موتور جستجو اورابل)</h2>
+                </div>
+                <span class="tag" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">GapGPT Engine</span>
+            </div>
+            <div class="siri-content">
+                <p>برای اولین بار در تمام اسکریپت های موتور جستجو در دنیا و فقط در اورابل این قابلیت  وجود دارد که کاربران شما به صورت رایگان و یا در صورت خریداری اشتراک پرو در نتایج جستجو خود توسط هوش مصنوعی پاسخ دقیق و جذاب دریافت میکنند!</p>
+            </div>
+        </div>
+
+        <!-- ==================== VERSION 3 ==================== -->
+        <div class="version-section-header">
+            <span class="version-tag version-v3">نسخه ۳ جدید</span>
+            <h2>قابلیت‌های اختصاصی و پیشرفته نسخه ۳</h2>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                <h3>موتور جستجوی ترکیبی (Hybrid Search)</h3>
+                <p>تلفیق هوشمند دیتابیس داخلی با API گوگل و بینگ، پاسخگویی زیر ۰.۵ ثانیه (Strict Timeout)، سه حالت کاری ادمین و سیستم خود-ایندکس‌سازی پس‌زمینه.</p>
+                <div class="tag-list"><span class="tag">Google API</span><span class="tag">Bing API</span><span class="tag">تایم‌اوت ۰.۵s</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+                <h3>سرویس تاییدیه وب اورابل (OPW)</h3>
+                <p>احراز هویت وب‌سایت‌ها، تعریف نقش «محافظ بخش»، فاکتورینگ دوره‌ای هوشمند، ویجت پاپ‌آپ رسمی و تیک سبز امنیت در صفحه نتایج.</p>
+                <div class="tag-list"><span class="tag">تاییدیه OPW</span><span class="tag">تیک سبز</span><span class="tag">ویجت اختصاصی</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div>
+                <h3>درک نیت و جستجوی معنایی (User Intent)</h3>
+                <p>درک هدف اصلی کاربر، پشتیبانی کامل از مترادف‌ها و هم‌خانواده‌های فارسی و سیستم رتبه‌بندی پیشرفته بر اساس ترجیحات و کلیک‌های کاربران.</p>
+                <div class="tag-list"><span class="tag">Semantic Search</span><span class="tag">مترادف‌ها</span><span class="tag">امتیازدهی کلیک</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg></div>
+                <h3>۱۰ پوسته و تم متنوع صفحه اصلی</h3>
+                <p>۱۰ تم ریسپانسیو و فوق‌العاده مدرن شبیه گوگل، بینگ، یاندکس، شیشه‌ای، نئون، کلاسیک و کارت با قابلیت تعویض آنی از پنل ادمین.</p>
+                <div class="tag-list"><span class="tag">۱۰ تم اصلی</span><span class="tag">گوگل/بینگ/یاندکس</span><span class="tag">کنترل ادمین</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg></div>
+                <h3>کلیک راست سفارشی (اورابل ورژن 3.0.0)</h3>
+                <p>منوی کلیک راست کاملاً اختصاصی با برند اورابل ورژن 3.0.0 و آیکون‌های پویا بر اساس بخش‌های مختلف سایت و کلید مدیریت ادمین.</p>
+                <div class="tag-list"><span class="tag">اورابل v3.0.0</span><span class="tag">Custom Context Menu</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg></div>
+                <h3>پس‌زمینه و ویجت‌های اختصاصی کاربران پرو</h3>
+                <p>قابلیت شخصی‌سازی تصویر پس‌زمینه صفحه سرچ و افزودن ویجت‌های زنده (مانند آب‌وهوای شهر) برای کاربران پرو با قابلیت کنترل ادمین.</p>
+                <div class="tag-list"><span class="tag">شخصی‌سازی پس‌زمینه</span><span class="tag">ویجت آب‌وهوا</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                <h3>دریافت هوشمند لوگو و فاوآیکون سایت‌ها</h3>
+                <p>رفع کامل باگ عدم دریافت تصاویر بندانگشتی و استخراج دقیق لوگو و فاوآیکون از سایت مبدا جهت نمایش در کارت نتایج.</p>
+                <div class="tag-list"><span class="tag">Favicon Feeder</span><span class="tag">نمایش لوگو</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                <h3>گزارش‌گیری هوشمند تبلیغات</h3>
+                <p>داشبورد جدید گزارش‌دهی تبلیغات با نمودارهای روزانه، آمار کلیک‌ها و بازدیدها و ارتقای گزارش‌ها برای دارندگان اشتراک پرو.</p>
+                <div class="tag-list"><span class="tag">نمودار کلیک</span><span class="tag">آمار دقیق</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+                <h3>کپی لینک و اشتراک‌گذاری نتایج</h3>
+                <p>افزودن منوی سه نقطه روی تمام کارت‌های نتایج جهت کپی سریع آدرس لینک و اشتراک‌گذاری در شبکه های اجتماعی.</p>
+                <div class="tag-list"><span class="tag">سه نقطه نتایج</span><span class="tag">کپی لینک</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                <h3>بازطراحی کامل تب‌های عکس و ویدیو</h3>
+                <p>طراحی مدرن، لایت‌باکس پیشرفته، امکان دانلود مستقیم تصاویر و ویدیوها، اشتراک‌گذاری و چیدمان شبکه‌ای شکیل.</p>
+                <div class="tag-list"><span class="tag">Lightbox</span><span class="tag">دانلود مستقیم</span></div>
+            </div>
+        </div>
+
+        <!-- ==================== VERSION 2 ==================== -->
+        <div class="version-section-header">
+            <span class="version-tag version-v2">نسخه ۲</span>
+            <h2>امکانات و ارتقاهای نسخه ۲ اورابل</h2>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></div>
+                <h3>نوار ناوبری شناور موبایل (Bottom Bar)</h3>
+                <p>منوی پایینی مدرن و اپلیکیشنی برای موبایل شامل آیکون‌های خانه، تاریخچه، علاقه‌مندی‌ها، کیف پول و پروفایل.</p>
+                <div class="tag-list"><span class="tag">Mobile Navigation</span><span class="tag">طراحی SaaS</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
+                <h3>سیستم اعلان‌های هدفمند (Bell)</h3>
+                <p>ارسال اعلان از پنل ادمین به تمامی کاربران، فقط کاربران پرو یا گروه خاص همراه با آیکون زنگوله و شمارنده پیام‌ها.</p>
+                <div class="tag-list"><span class="tag">اعلان پویا</span><span class="tag">زنگوله پیام</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 11.37 9.198 15.63 4 19"/></svg></div>
+                <h3>مدیریت زبان‌ها و ترجمه داینامیک</h3>
+                <p>افزودن زبان‌های جدید (RTL/LTR) از داخل پنل مدیریت و ویرایش آنلاین تمام کلیدهای ترجمه بدون نیاز به کدنویسی.</p>
+                <div class="tag-list"><span class="tag">Multi-Language</span><span class="tag">ویرایش آنلاین</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                <h3>کیبورد مجازی هوشمند</h3>
+                <p>کیبورد اختصاصی روی صفحه اصلی سرچ با پشتیبانی کامل از فارسی و انگلیسی و کلید فعال/غیرفعال‌سازی در ادمین.</p>
+                <div class="tag-list"><span class="tag">Virtual Keyboard</span><span class="tag">فارسی/انگلیسی</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                <h3>ارتقای سیستم کتابخانه رسانه</h3>
+                <p>رفع کامل باگ پاپ‌آپ‌های مدیریت رسانه، آپلود AJAX، اعتبارسنجی پسوندها و ذخیره‌سازی ایمن در پوشه uploads.</p>
+                <div class="tag-list"><span class="tag">Media Library</span><span class="tag">آپلود AJAX</span></div>
+            </div>
+        </div>
+
+        <!-- ==================== VERSION 1 ==================== -->
+        <div class="version-section-header">
+            <span class="version-tag version-v1">نسخه ۱ اصلی</span>
+            <h2>قابلیت‌های پایه و امکانات هسته اصلی اورابل</h2>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
+                <h3>گراف دانش اختصاصی (Knowledge Graph)</h3>
+                <p>نمایش پنل اختصاصی اطلاعات شهرها، افراد و برندها در کنار نتایج سرچ به همراه گالری تصاویر و سن پویا.</p>
+                <div class="tag-list"><span class="tag">گراف دانش</span><span class="tag">اطلاعات زنده</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+                <h3>درگاه زرین‌پال و کیف پول اختصاصی</h3>
+                <p>سیستم کامل کیف پول، شارژ آنی با درگاه زرین‌پال API v4، تراکنش‌های ایمن دیتابیس و مدیریت مالی کامل کاربران.</p>
+                <div class="tag-list"><span class="tag">زرین‌پال v4</span><span class="tag">کیف پول</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457-.312-2.841-.873-4.084"/></svg></div>
+                <h3>سرویس «ورود با اورابل» (OAuth 2.0)</h3>
+                <p>پشتیبانی کامل از استاندارد OAuth 2.0 + PKCE جهت اجازه به سایر وب‌سایت‌ها برای افزودن ورود با حساب اورابل.</p>
+                <div class="tag-list"><span class="tag">OAuth 2.0</span><span class="tag">PKCE</span></div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg></div>
+                <h3>خزشگر اختصاصی ۵گانه (Web Crawlers)</h3>
+                <p>۵ خزشگر مستقل موازی با موتور cURL / SockFetcher، رعایت robots.txt، زمان‌بندی سایت‌ها و استخراج دقیق داده‌ها.</p>
+                <div class="tag-list"><span class="tag">۵ خزشگر موازی</span><span class="tag">موتور SockFetcher</span></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>طراحی شده باعشق ، اسکریپت اورابل نسخه ۳ (Orabel v3.0.0) — تمامی حقوق محفوظ است.</p>
+    </footer>
+
+    <!-- جاوااسکریپت انیمیشن‌ها و کلیک راست سفارشی -->
+    <script>
+        // کلیک راست سفارشی اختصاصی اورابل v3.0.0
+        const contextMenu = document.getElementById('context-menu');
+
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.clientX}px`;
+            contextMenu.style.top = `${e.clientY}px`;
+        });
+
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+
+        // تعقیب‌کننده موس (Custom Cursor)
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.style.left = `${posX}px`;
+            cursorOutline.style.top = `${posY}px`;
+        });
+
+        // ایجاد ذرات پس‌زمینه متحرک
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 35;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const size = Math.random() * 60 + 20;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.top = `${Math.random() * 100}vh`;
+            
+            const duration = Math.random() * 10 + 8;
+            particle.style.animationDuration = `${duration}s`;
+            
+            const delay = Math.random() * 5;
+            particle.style.animationDelay = `-${delay}s`;
+
+            particlesContainer.appendChild(particle);
+        }
+    </script>
+</body>
+</html>
