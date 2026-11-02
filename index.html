@@ -3,27 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اسکریپت موتور جستجوی اورابل (Orabel v3.0.0) — نسخه اختصاصی فیروزه‌ای</title>
+    <title>اسکریپت موتور جستجوی اورابل (Orabel v3.0.0)</title>
+    <link rel="icon" type="image/png" href="g.png">
     <!-- لینک مستقیم فونت وزیر -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
     <style>
         :root {
-            --bg-body: #020914;
-            --bg-card: rgba(6, 24, 44, 0.75);
-            --bg-card-hover: rgba(12, 38, 68, 0.9);
-            --accent-cyan: #00d2ff;
-            --accent-blue: #0072ff;
+            --bg-body: #01040a;
+            --bg-card: rgba(4, 15, 30, 0.85);
+            --bg-card-hover: rgba(8, 28, 56, 0.95);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
             --accent-teal: #00f2fe;
-            --accent-green: #10b981;
-            --accent-green-hover: #059669;
+            --accent-green: #00ff87;
+            --accent-green-hover: #60efff;
             --text-title: #ffffff;
-            --text-body: #d1e5f7;
-            --text-muted: #7fa5c9;
-            --border-color: rgba(0, 210, 255, 0.18);
-            --gradient-text: linear-gradient(135deg, #00f2fe, #0099ff, #3a7bd5);
-            --gradient-cyan-btn: linear-gradient(135deg, #00c6ff, #0072ff);
-            --gradient-green-btn: linear-gradient(135deg, #10b981, #059669);
-            --glow-cyan: 0 0 25px rgba(0, 210, 255, 0.4);
+            --text-body: #e2f1ff;
+            --text-muted: #8ab4f8;
+            --border-color: rgba(0, 242, 254, 0.3);
+            --gradient-text: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #00ff87 100%);
+            --gradient-cyan-btn: linear-gradient(135deg, #00f2fe, #0072ff);
+            --gradient-green-btn: linear-gradient(135deg, #00ff87, #60efff);
+            --glow-cyan: 0 0 35px rgba(0, 242, 254, 0.6);
+            --glow-green: 0 0 35px rgba(0, 255, 135, 0.6);
         }
 
         * {
@@ -34,15 +36,43 @@
             scroll-behavior: smooth;
         }
 
+        /* اسکرول‌بار فوق پیشرفته نئونی */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #01040a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00f2fe, #0072ff);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.8);
+        }
+
         body {
             background-color: var(--bg-body);
             color: var(--text-body);
-            line-height: 1.8;
+            line-height: 1.9;
             overflow-x: hidden;
             position: relative;
         }
 
-        /* افکت موس فیروزه‌ای نئونی */
+        /* پس‌زمینه سایبرپانک گرید متحرک */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* افکت موس نئونی هولوگرافیک */
         .cursor-dot, .cursor-outline {
             position: fixed;
             top: 0;
@@ -50,23 +80,23 @@
             transform: translate(-50%, -50%);
             border-radius: 50%;
             pointer-events: none;
-            z-index: 9999;
-            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            z-index: 99999;
+            transition: width 0.15s, height 0.15s, background-color 0.15s;
         }
 
         .cursor-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background-color: var(--accent-cyan);
-            box-shadow: 0 0 15px var(--accent-cyan);
+            box-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan);
         }
 
         .cursor-outline {
-            width: 42px;
-            height: 42px;
-            border: 2px solid rgba(0, 210, 255, 0.6);
-            background: rgba(0, 210, 255, 0.05);
-            transition: transform 0.1s ease-out;
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(0, 242, 254, 0.5);
+            background: rgba(0, 242, 254, 0.03);
+            transition: transform 0.08s ease-out;
         }
 
         /* ذرات پس‌زمینه پویا */
@@ -74,8 +104,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 5%;
+            height: 5%;
             overflow: hidden;
             z-index: -1;
             pointer-events: none;
@@ -83,178 +113,281 @@
 
         .particle {
             position: absolute;
-            background: radial-gradient(circle, rgba(0, 210, 255, 0.35) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.6) 0%, transparent 70%);
             border-radius: 50%;
-            animation: floatParticle 10s infinite linear;
+            animation: floatParticle 8s infinite linear;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
         }
 
         @keyframes floatParticle {
-            0% { transform: translateY(100vh) scale(0.4); opacity: 0; }
-            50% { opacity: 0.8; }
-            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+            0% { transform: translateY(105vh) scale(0.3); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.8); opacity: 0; }
         }
 
-        /* اصلاح منوی کلیک راست سفارشی با آیکون‌های راست‌چین استاندار و شیک */
+        /* منوی ناوبری فوق خفن شناور بالا (Floating Glass Navbar) */
+        .top-glass-nav {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 1200px;
+            background: rgba(2, 12, 27, 0.85);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            border-radius: 22px;
+            padding: 12px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9990;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 242, 254, 0.25);
+            animation: slideDownNav 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDownNav {
+            from { transform: translate(-50%, -60px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 900;
+            font-size: 1.15rem;
+        }
+
+        .nav-brand img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-cyan);
+            box-shadow: 0 0 12px var(--accent-cyan);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-body);
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-cyan);
+            transition: width 0.3s;
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            background: var(--gradient-green-btn);
+            color: #01040a !important;
+            padding: 8px 22px;
+            border-radius: 30px;
+            font-weight: 800 !important;
+            box-shadow: 0 0 20px rgba(0, 255, 135, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+
+        .nav-cta::after { display: none !important; }
+        .nav-cta:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 0 35px rgba(0, 255, 135, 0.8);
+        }
+
+        /* منوی کلیک راست سفارشی فوق‌العاده خفن هولوگرافیک */
         .custom-context-menu {
             position: fixed;
             display: none;
-            z-index: 10000;
-            width: 250px;
-            background: rgba(4, 16, 33, 0.96);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 210, 255, 0.4);
-            border-radius: 16px;
-            padding: 8px 0;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 210, 255, 0.25);
-            animation: menuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100000;
+            width: 270px;
+            background: rgba(2, 12, 27, 0.98);
+            backdrop-filter: blur(30px);
+            border: 1.5px solid rgba(0, 242, 254, 0.6);
+            border-radius: 20px;
+            padding: 10px 0;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 242, 254, 0.35);
+            animation: menuFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             direction: rtl;
             text-align: right;
         }
 
         @keyframes menuFadeIn {
-            from { opacity: 0; transform: scale(0.95) translateY(5px); }
+            from { opacity: 0; transform: scale(0.9) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .ctx-header {
-            padding: 10px 16px;
-            font-size: 0.88rem;
-            font-weight: bold;
+            padding: 12px 18px;
+            font-size: 0.92rem;
+            font-weight: 900;
             color: var(--accent-cyan);
-            border-bottom: 1px solid rgba(0, 210, 255, 0.15);
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            background: rgba(0, 242, 254, 0.05);
         }
 
         .ctx-header svg {
             stroke: var(--accent-cyan);
             flex-shrink: 0;
+            filter: drop-shadow(0 0 8px var(--accent-cyan));
         }
 
         .ctx-item {
-            padding: 10px 16px;
-            font-size: 0.9rem;
+            padding: 12px 18px;
+            font-size: 0.92rem;
             color: var(--text-body);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
         }
 
         .ctx-item svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             stroke: var(--accent-cyan);
             flex-shrink: 0;
-            transition: transform 0.2s;
+            transition: transform 0.25s;
         }
 
         .ctx-item:hover {
-            background: linear-gradient(270deg, rgba(0, 210, 255, 0.25), transparent);
+            background: linear-gradient(270deg, rgba(0, 242, 254, 0.3), rgba(0, 114, 255, 0.15));
             color: #ffffff;
-            padding-right: 20px;
+            padding-right: 24px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.6);
         }
 
         .ctx-item:hover svg {
-            transform: scale(1.15);
-            stroke: #ffffff;
+            transform: scale(1.25) rotate(8deg);
+            stroke: var(--accent-green);
+            filter: drop-shadow(0 0 10px var(--accent-green));
         }
 
         .ctx-divider {
             height: 1px;
-            background: rgba(0, 210, 255, 0.12);
-            margin: 6px 0;
+            background: rgba(0, 242, 254, 0.2);
+            margin: 8px 0;
         }
 
         /* Hero Header */
         header {
-            padding: 70px 20px 40px;
+            padding: 180px 20px 60px;
             text-align: center;
             position: relative;
             z-index: 2;
         }
 
-        /* جایگاه عکس اختصاصی شما */
         .hero-logo-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .hero-logo-box {
             position: relative;
-            width: 150px;
-            height: 150px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 210, 255, 0.25) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.3) 0%, transparent 75%);
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid rgba(0, 210, 255, 0.5);
-            box-shadow: 0 0 35px rgba(0, 210, 255, 0.4);
+            border: 2px solid rgba(0, 242, 254, 0.6);
+            box-shadow: 0 0 50px rgba(0, 242, 254, 0.5), inset 0 0 30px rgba(0, 242, 254, 0.3);
             animation: logoPulse 4s infinite alternate;
         }
 
         @keyframes logoPulse {
-            0% { transform: translateY(0) scale(1); box-shadow: 0 0 25px rgba(0, 210, 255, 0.3); }
-            100% { transform: translateY(-8px) scale(1.05); box-shadow: 0 0 50px rgba(0, 242, 254, 0.7); }
+            0% { transform: translateY(0) scale(1) rotate(0deg); box-shadow: 0 0 40px rgba(0, 242, 254, 0.4); }
+            100% { transform: translateY(-10px) scale(1.06) rotate(3deg); box-shadow: 0 0 80px rgba(0, 255, 135, 0.7); }
         }
 
-        /* عکس واقعی که از سورس جایگذاری می‌شود */
         .hero-logo-img {
-            width: 85px;
-            height: 85px;
+            width: 160px;
+            height: 160px;
             object-fit: contain;
             border-radius: 50%;
-            filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.8));
+            filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.8));
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 28px;
-            border-radius: 35px;
-            background: rgba(0, 210, 255, 0.12);
-            border: 1px solid rgba(0, 210, 255, 0.4);
-            color: #70d6ff;
-            font-size: 1.05rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            box-shadow: 0 0 25px rgba(0, 210, 255, 0.25);
+            gap: 12px;
+            padding: 12px 32px;
+            border-radius: 40px;
+            background: rgba(0, 242, 254, 0.12);
+            border: 1.5px solid rgba(0, 242, 254, 0.5);
+            color: var(--accent-cyan);
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
             animation: pulseBadge 3s infinite alternate;
         }
 
         @keyframes pulseBadge {
-            0% { transform: scale(1); box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
-            100% { transform: scale(1.04); box-shadow: 0 0 35px rgba(0, 210, 255, 0.5); }
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 242, 254, 0.3); }
+            100% { transform: scale(1.05); box-shadow: 0 0 45px rgba(0, 242, 254, 0.7); }
         }
 
         h1.hero-title {
-            font-size: 3.6rem;
+            font-size: 4rem;
             font-weight: 900;
-            margin-bottom: 18px;
+            margin-bottom: 22px;
             background: var(--gradient-text);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
+            letter-spacing: -1.5px;
+            filter: drop-shadow(0 10px 30px rgba(0, 242, 254, 0.3));
             animation: fadeInUp 1s ease-out;
         }
 
         p.hero-desc {
-            font-size: 1.3rem;
+            font-size: 1.35rem;
             color: var(--text-muted);
-            max-width: 950px;
-            margin: 0 auto 30px;
+            max-width: 980px;
+            margin: 0 auto 35px;
             animation: fadeInUp 1.2s ease-out;
         }
 
-        /* دکمه سبز خوش‌رنگ خرید قالب */
+        /* دکمه سبز خرید قالب با افکت‌های حیرت‌انگیز */
         .btn-buy-wrapper {
-            margin-top: 15px;
+            margin-top: 20px;
             display: inline-block;
             animation: fadeInUp 1.4s ease-out;
         }
@@ -262,34 +395,51 @@
         .btn-buy {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
-            padding: 16px 42px;
+            gap: 14px;
+            padding: 18px 48px;
             background: var(--gradient-green-btn);
-            color: #ffffff;
-            font-size: 1.2rem;
-            font-weight: bold;
+            color: #01040a;
+            font-size: 1.3rem;
+            font-weight: 900;
             border-radius: 50px;
             text-decoration: none;
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 40px rgba(0, 255, 135, 0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-buy::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transition: 0.6s;
+        }
+
+        .btn-buy:hover::before {
+            left: 100%;
         }
 
         .btn-buy:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 20px 45px rgba(16, 185, 129, 0.7);
-            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-8px) scale(1.08);
+            box-shadow: 0 25px 60px rgba(0, 255, 135, 0.8), 0 0 50px var(--accent-cyan);
+            background: linear-gradient(135deg, #60efff, #00ff87);
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(35px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .container {
-            max-width: 1300px;
+            max-width: 1350px;
             margin: 0 auto;
-            padding: 0 20px 100px;
+            padding: 0 20px 120px;
             position: relative;
             z-index: 2;
         }
@@ -297,46 +447,47 @@
         /* Video Showcase Section */
         .video-wrapper {
             background: var(--bg-card);
-            backdrop-filter: blur(16px);
-            border-radius: 28px;
-            padding: 28px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(0, 210, 255, 0.15);
-            margin-bottom: 90px;
+            backdrop-filter: blur(25px);
+            border-radius: 32px;
+            padding: 32px;
+            border: 1.5px solid var(--border-color);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9), inset 0 0 40px rgba(0, 242, 254, 0.1);
+            margin-bottom: 100px;
             position: relative;
             overflow: hidden;
-            animation: floatBox 5s ease-in-out infinite;
+            transition: all 0.4s;
         }
 
-        @keyframes floatBox {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        .video-wrapper:hover {
+            border-color: rgba(0, 242, 254, 0.8);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 242, 254, 0.3);
         }
 
         .video-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             padding: 0 10px;
         }
 
         .video-header h2 {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             color: var(--text-title);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .video-container {
             position: relative;
             padding-bottom: 56.25%;
             height: 0;
-            border-radius: 18px;
+            border-radius: 20px;
             overflow: hidden;
             background: #000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            border: 1px solid rgba(0, 242, 254, 0.4);
         }
 
         .video-container iframe {
@@ -348,23 +499,23 @@
             border: 0;
         }
 
-        /* کارت فوق‌العاده خفن AI Overview (تم فیروزه‌ای و سیان) */
+        /* AI Overview (تم فیروزه‌ای و سیان فوق پیشرفته) */
         .siri-ai-card {
-            background: linear-gradient(135deg, rgba(4, 20, 42, 0.9), rgba(0, 40, 70, 0.85));
-            backdrop-filter: blur(25px);
-            border: 2px solid rgba(0, 210, 255, 0.6);
-            border-radius: 32px;
-            padding: 45px;
-            margin-bottom: 90px;
+            background: linear-gradient(135deg, rgba(2, 20, 45, 0.95), rgba(0, 50, 90, 0.9));
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(0, 242, 254, 0.7);
+            border-radius: 36px;
+            padding: 50px;
+            margin-bottom: 100px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 30px 70px rgba(0, 210, 255, 0.3), inset 0 0 30px rgba(0, 242, 254, 0.15);
+            box-shadow: 0 40px 90px rgba(0, 242, 254, 0.35), inset 0 0 50px rgba(0, 242, 254, 0.2);
             animation: cardGlowPulse 4s infinite alternate;
         }
 
         @keyframes cardGlowPulse {
-            0% { border-color: rgba(0, 210, 255, 0.4); box-shadow: 0 20px 50px rgba(0, 210, 255, 0.25); }
-            100% { border-color: rgba(0, 242, 254, 0.8); box-shadow: 0 35px 80px rgba(0, 242, 254, 0.5); }
+            0% { border-color: rgba(0, 242, 254, 0.5); box-shadow: 0 30px 70px rgba(0, 242, 254, 0.3); }
+            100% { border-color: rgba(0, 255, 135, 0.9); box-shadow: 0 50px 110px rgba(0, 255, 135, 0.5); }
         }
 
         .siri-glow-bg {
@@ -373,8 +524,8 @@
             left: -60%;
             width: 220%;
             height: 220%;
-            background: radial-gradient(circle at center, rgba(0, 242, 254, 0.18), rgba(0, 114, 255, 0.18), transparent 70%);
-            animation: siriRotate 12s linear infinite;
+            background: radial-gradient(circle at center, rgba(0, 242, 254, 0.22), rgba(0, 114, 255, 0.22), transparent 70%);
+            animation: siriRotate 14s linear infinite;
             pointer-events: none;
         }
 
@@ -387,7 +538,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             position: relative;
             z-index: 2;
         }
@@ -395,22 +546,22 @@
         .siri-title-group {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 20px;
         }
 
         .siri-orb {
-            width: 55px;
-            height: 55px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #00f2fe, #0072ff, #10b981, #00c6ff);
+            background: linear-gradient(135deg, #00f2fe, #0072ff, #00ff87, #4facfe);
             background-size: 300% 300%;
-            box-shadow: 0 0 30px rgba(0, 242, 254, 0.9), 0 0 60px rgba(0, 114, 255, 0.8);
+            box-shadow: 0 0 40px rgba(0, 242, 254, 0.95), 0 0 80px rgba(0, 255, 135, 0.8);
             animation: siriPulse 2.5s ease-in-out infinite alternate, gradientShift 6s ease infinite;
         }
 
         @keyframes siriPulse {
-            0% { transform: scale(0.9) rotate(0deg); box-shadow: 0 0 20px rgba(0, 210, 255, 0.6); }
-            100% { transform: scale(1.2) rotate(360deg); box-shadow: 0 0 45px rgba(0, 242, 254, 0.95); }
+            0% { transform: scale(0.9) rotate(0deg); box-shadow: 0 0 25px rgba(0, 242, 254, 0.6); }
+            100% { transform: scale(1.25) rotate(360deg); box-shadow: 0 0 60px rgba(0, 255, 135, 1); }
         }
 
         @keyframes gradientShift {
@@ -422,60 +573,64 @@
         .siri-content {
             position: relative;
             z-index: 2;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(0, 210, 255, 0.2);
-            border-radius: 22px;
-            padding: 30px;
-            font-size: 1.15rem;
-            line-height: 2;
-            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(0, 242, 254, 0.3);
+            border-radius: 26px;
+            padding: 35px;
+            font-size: 1.25rem;
+            line-height: 2.1;
+            color: #ffffff;
+            box-shadow: inset 0 0 20px rgba(0, 242, 254, 0.1);
         }
 
         /* Section Headers */
         .version-section-header {
             display: flex;
             align-items: center;
-            gap: 18px;
-            margin: 80px 0 40px;
-            padding-bottom: 18px;
+            gap: 20px;
+            margin: 90px 0 45px;
+            padding-bottom: 20px;
             border-bottom: 2px solid var(--border-color);
         }
 
         .version-tag {
-            padding: 8px 22px;
-            border-radius: 14px;
-            color: #fff;
-            font-size: 1.15rem;
-            font-weight: bold;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            padding: 10px 26px;
+            border-radius: 16px;
+            color: #01040a;
+            font-size: 1.25rem;
+            font-weight: 900;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
         }
 
-        .version-v3 { background: linear-gradient(135deg, #00c6ff, #0072ff); }
-        .version-v2 { background: linear-gradient(135deg, #3a7bd5, #3a6073); }
-        .version-v1 { background: linear-gradient(135deg, #10b981, #059669); }
+        .version-v3 { background: linear-gradient(135deg, #00f2fe, #0072ff); color: #fff; box-shadow: 0 0 25px rgba(0,242,254,0.6); }
+        .version-v2 { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #01040a; box-shadow: 0 0 25px rgba(79,172,254,0.6); }
+        .version-v1 { background: linear-gradient(135deg, #00ff87, #60efff); color: #01040a; box-shadow: 0 0 25px rgba(0,255,135,0.6); }
 
         .version-section-header h2 {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             color: var(--text-title);
             letter-spacing: -0.5px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
         }
 
-        /* Features Grid & Cards */
+        /* Features Grid & Cards 3D Tilt */
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(370px, 1fr));
-            gap: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 35px;
         }
 
         .feature-card {
             background: var(--bg-card);
-            backdrop-filter: blur(14px);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 36px;
+            backdrop-filter: blur(18px);
+            border: 1.5px solid var(--border-color);
+            border-radius: 28px;
+            padding: 40px;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
         }
 
         .feature-card::before {
@@ -484,17 +639,17 @@
             top: 0;
             right: 0;
             width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #00f2fe, #0072ff, #10b981);
+            height: 6px;
+            background: linear-gradient(90deg, #00f2fe, #4facfe, #00ff87);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
 
         .feature-card:hover {
-            transform: translateY(-10px) scale(1.02);
+            transform: translateY(-12px) scale(1.03);
             background: var(--bg-card-hover);
-            border-color: rgba(0, 210, 255, 0.6);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 210, 255, 0.25);
+            border-color: rgba(0, 242, 254, 0.9);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.9), 0 0 45px rgba(0, 242, 254, 0.35);
         }
 
         .feature-card:hover::before {
@@ -502,77 +657,81 @@
         }
 
         .card-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 18px;
-            background: rgba(0, 210, 255, 0.15);
+            width: 68px;
+            height: 68px;
+            border-radius: 20px;
+            background: rgba(0, 242, 254, 0.15);
             color: var(--accent-cyan);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
-            border: 1px solid rgba(0, 210, 255, 0.3);
-            transition: transform 0.3s ease;
+            margin-bottom: 26px;
+            border: 1.5px solid rgba(0, 242, 254, 0.4);
+            transition: transform 0.4s ease;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
         }
 
         .feature-card:hover .card-icon {
-            transform: scale(1.15) rotate(6deg);
-            background: rgba(0, 210, 255, 0.35);
-            color: #fff;
+            transform: scale(1.2) rotate(10deg);
+            background: rgba(0, 255, 135, 0.25);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 30px var(--accent-green);
         }
 
         .feature-card h3 {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: var(--text-title);
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .feature-card p {
             color: var(--text-body);
-            font-size: 0.98rem;
-            line-height: 1.85;
+            font-size: 1.05rem;
+            line-height: 1.95;
         }
 
         .tag-list {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 24px;
         }
 
         .tag {
-            font-size: 0.8rem;
-            padding: 5px 12px;
-            border-radius: 8px;
-            background: rgba(0, 210, 255, 0.08);
-            color: #70d6ff;
-            border: 1px solid rgba(0, 210, 255, 0.15);
-            transition: background 0.2s;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 10px;
+            background: rgba(0, 242, 254, 0.08);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            transition: all 0.25s;
         }
 
         .tag:hover {
-            background: rgba(0, 210, 255, 0.25);
+            background: rgba(0, 242, 254, 0.3);
             color: #fff;
+            box-shadow: 0 0 12px var(--accent-cyan);
         }
 
-        /* نوار ناوبری موبایلی شناور و کاملاً کاربردی (Bottom Navigation Bar) */
+        /* نوار ناوبری موبایلی شناور فوق پیشرفته (Bottom Navigation Bar) */
         .mobile-bottom-bar {
             position: fixed;
-            bottom: 20px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
-            max-width: 450px;
-            background: rgba(4, 18, 38, 0.92);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 210, 255, 0.5);
-            border-radius: 25px;
+            width: 92%;
+            max-width: 480px;
+            background: rgba(2, 14, 30, 0.94);
+            backdrop-filter: blur(25px);
+            border: 1.5px solid rgba(0, 242, 254, 0.6);
+            border-radius: 28px;
             display: none;
             justify-content: space-around;
             align-items: center;
-            padding: 12px 20px;
+            padding: 14px 22px;
             z-index: 9998;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.85), 0 0 25px rgba(0, 210, 255, 0.3);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.95), 0 0 35px rgba(0, 242, 254, 0.4);
         }
 
         .mobile-nav-item {
@@ -581,36 +740,39 @@
             align-items: center;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.78rem;
-            gap: 4px;
-            transition: all 0.2s;
+            font-size: 0.82rem;
+            gap: 5px;
+            transition: all 0.25s;
         }
 
         .mobile-nav-item svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             stroke: currentColor;
         }
 
         .mobile-nav-item:hover, .mobile-nav-item.active {
             color: var(--accent-cyan);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            text-shadow: 0 0 10px var(--accent-cyan);
         }
 
         footer {
-            border-top: 1px solid var(--border-color);
-            padding: 60px 20px 100px;
+            border-top: 1.5px solid var(--border-color);
+            padding: 70px 20px 110px;
             text-align: center;
             color: var(--text-muted);
-            font-size: 1rem;
-            background: rgba(2, 9, 20, 0.95);
+            font-size: 1.1rem;
+            background: rgba(1, 4, 10, 0.98);
             position: relative;
             z-index: 2;
+            box-shadow: inset 0 20px 40px rgba(0,0,0,0.8);
         }
 
         @media (max-width: 768px) {
-            h1.hero-title { font-size: 2.2rem; }
-            p.hero-desc { font-size: 1.05rem; }
+            .top-glass-nav { display: none; }
+            h1.hero-title { font-size: 2.6rem; }
+            p.hero-desc { font-size: 1.1rem; }
             .features-grid { grid-template-columns: 1fr; }
             .cursor-dot, .cursor-outline { display: none; }
             .mobile-bottom-bar { display: flex; }
@@ -619,7 +781,27 @@
 </head>
 <body>
 
-    <!-- کلیک راست سفارشی پیشرفته با آیکون‌های راست‌چین عالی -->
+    <!-- پس‌زمینه گرید سایبرپانک -->
+    <div class="cyber-grid"></div>
+
+    <!-- منوی ناوبری بالایی شیشه‌ای خفن -->
+    <nav class="top-glass-nav">
+        <a href="#top" class="nav-brand">
+            <img src="g.png" alt="اورابل" onerror="this.src='g.png'" />
+            <span>اورابل v3.0.0</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#top">خانه</a></li>
+            <li><a href="#video">پیش‌نمایش</a></li>
+            <li><a href="#siri">هوش مصنوعی</a></li>
+            <li><a href="#v3">نسخه ۳</a></li>
+            <li><a href="#v2">نسخه ۲</a></li>
+            <li><a href="#v1">نسخه ۱</a></li>
+            <li><a href="#" class="nav-cta">خرید اسکریپت</a></li>
+        </ul>
+    </nav>
+
+    <!--کلیک راست هولوگرافیک فوق خفن -->
     <div class="custom-context-menu" id="context-menu">
         <div class="ctx-header">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -652,26 +834,24 @@
     <div class="bg-particles" id="particles"></div>
 
     <header id="top">
-        <!-- جایگاه عکس اختصاصی شما (عکس لوگوی فیروزه‌ای بالا) -->
         <div class="hero-logo-container">
             <div class="hero-logo-box">
-                <!-- آدرس عکس لوگو در این قسمت قرار می‌گیرد -->
-                <img src="YOUR_IMAGE_URL_HERE" alt="لوگوی اورابل نسخه ۳" class="hero-logo-img" onerror="this.src='g.png'" />
+                <img src="g.png" alt="لوگوی اورابل نسخه ۳" class="hero-logo-img" onerror="this.src='g.png'" />
             </div>
         </div>
 
         <div class="hero-badge">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             اورابل نسخه ۳ (Orabel v3.0.0)
         </div>
         <h1 class="hero-title">اولین و تنها اسکریپت موتور جستجو ایرانی</h1>
         <p class="hero-desc">اسکریپت موتور جستجو اورابل اولین و تنها موتور جستجو ایرانی و ششمین موتور جستجو در دنیاست که با تکنولوژی‌های فوق‌العاده مدرن، هوش مصنوعی پیشرفته و امنیت بی‌رقیب توسعه داده شده است.</p>
 
-        <!-- دکمه سبز خوش‌رنگ خرید قالب -->
+        <!-- دکمه سبز خرید قالب -->
         <div class="btn-buy-wrapper">
             <a href="#" class="btn-buy">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                خرید قالب اورابل
+                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+               تاسیس بهترین موتور جستجو آسیا
             </a>
         </div>
     </header>
@@ -681,10 +861,10 @@
         <div class="video-wrapper" id="video">
             <div class="video-header">
                 <h2>
-                    <svg width="26" height="26" fill="none" stroke="#00f2fe" stroke-width="2" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg width="28" height="28" fill="none" stroke="#00f2fe" stroke-width="2" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     پیش‌نمایش ویدیویی قابلیت‌ها و محیط اسکریپت اورابل
                 </h2>
-                <span class="tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16,185,129,0.4);">پخش آنلاین HD</span>
+                <span class="tag" style="background: rgba(0, 255, 135, 0.2); color: #00ff87; border-color: rgba(0,255,135,0.4);">پخش آنلاین HD</span>
             </div>
             <div class="video-container">
                 <!-- جایگذاری آی‌فریم ویدیوی آپارات -->
@@ -692,15 +872,15 @@
             </div>
         </div>
 
-        <!-- کارت انیمیشنی فوق‌العاده خفن Siri AI Overview -->
+        <!-- کارت انیمیشنی Siri AI Overview -->
         <div class="siri-ai-card" id="siri">
             <div class="siri-glow-bg"></div>
             <div class="siri-header">
                 <div class="siri-title-group">
                     <div class="siri-orb"></div>
-                    <h2 style="font-size: 1.7rem; color: #fff;">پاسخ هوشمند AI Overview (در موتور جستجو اورابل)</h2>
+                    <h2 style="font-size: 1.9rem; color: #fff;">پاسخ هوشمند AI Overview (در موتور جستجو اورابل)</h2>
                 </div>
-                <span class="tag" style="background: rgba(0, 210, 255, 0.25); color: #70d6ff; border-color: rgba(0, 210, 255, 0.5);">GapGPT Engine</span>
+                <span class="tag" style="background: rgba(0, 242, 254, 0.25); color: #00f2fe; border-color: rgba(0, 242, 254, 0.5);">GapGPT Engine</span>
             </div>
             <div class="siri-content">
                 <p>برای اولین بار در تمام اسکریپت های موتور جستجو در دنیا و فقط در اورابل این قابلیت وجود دارد که کاربران شما به صورت رایگان و یا در صورت خریداری اشتراک پرو در نتایج جستجو خود توسط هوش مصنوعی پاسخ دقیق و جذاب دریافت میکنند!</p>
@@ -715,70 +895,70 @@
 
         <div class="features-grid">
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
                 <h3>موتور جستجوی ترکیبی (Hybrid Search)</h3>
                 <p>تلفیق هوشمند دیتابیس داخلی با API گوگل و بینگ، پاسخگویی زیر ۰.۵ ثانیه (Strict Timeout)، سه حالت کاری ادمین و سیستم خود-ایندکس‌سازی پس‌زمینه.</p>
                 <div class="tag-list"><span class="tag">Google API</span><span class="tag">Bing API</span><span class="tag">تایم‌اوت ۰.۵s</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
                 <h3>سرویس تاییدیه وب اورابل (OPW)</h3>
                 <p>احراز هویت وب‌سایت‌ها، تعریف نقش «محافظ بخش»، فاکتورینگ دوره‌ای هوشمند، ویجت پاپ‌آپ رسمی و تیک سبز امنیت در صفحه نتایج.</p>
                 <div class="tag-list"><span class="tag">تاییدیه OPW</span><span class="tag">تیک سبز</span><span class="tag">ویجت اختصاصی</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div>
                 <h3>درک نیت و جستجوی معنایی (User Intent)</h3>
                 <p>درک هدف اصلی کاربر، پشتیبانی کامل از مترادف‌ها و هم‌خانواده‌های فارسی و سیستم رتبه‌بندی پیشرفته بر اساس ترجیحات و کلیک‌های کاربران.</p>
                 <div class="tag-list"><span class="tag">Semantic Search</span><span class="tag">مترادف‌ها</span><span class="tag">امتیازدهی کلیک</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg></div>
                 <h3>۱۰ پوسته و تم متنوع صفحه اصلی</h3>
                 <p>۱۰ تم ریسپانسیو و فوق‌العاده مدرن شبیه گوگل، بینگ، یاندکس، شیشه‌ای، نئون، کلاسیک و کارت با قابلیت تعویض آنی از پنل ادمین.</p>
                 <div class="tag-list"><span class="tag">۱۰ تم اصلی</span><span class="tag">گوگل/بینگ/یاندکس</span><span class="tag">کنترل ادمین</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg></div>
                 <h3>کلیک راست سفارشی (اورابل ورژن 3.0.0)</h3>
                 <p>منوی کلیک راست کاملاً اختصاصی با برند اورابل ورژن 3.0.0 و آیکون‌های پویا بر اساس بخش‌های مختلف سایت و کلید مدیریت ادمین.</p>
                 <div class="tag-list"><span class="tag">اورابل v3.0.0</span><span class="tag">Custom Context Menu</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg></div>
                 <h3>پس‌زمینه و ویجت‌های اختصاصی کاربران پرو</h3>
                 <p>قابلیت شخصی‌سازی تصویر پس‌زمینه صفحه سرچ و افزودن ویجت‌های زنده (مانند آب‌وهوای شهر) برای کاربران پرو با قابلیت کنترل ادمین.</p>
                 <div class="tag-list"><span class="tag">شخصی‌سازی پس‌زمینه</span><span class="tag">ویجت آب‌وهوا</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
                 <h3>دریافت هوشمند لوگو و فاوآیکون سایت‌ها</h3>
                 <p>رفع کامل باگ عدم دریافت تصاویر بندانگشتی و استخراج دقیق لوگو و فاوآیکون از سایت مبدا جهت نمایش در کارت نتایج.</p>
                 <div class="tag-list"><span class="tag">Favicon Feeder</span><span class="tag">نمایش لوگو</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
                 <h3>گزارش‌گیری هوشمند تبلیغات</h3>
                 <p>داشبورد جدید گزارش‌دهی تبلیغات با نمودارهای روزانه، آمار کلیک‌ها و بازدیدها و ارتقای گزارش‌ها برای دارندگان اشتراک پرو.</p>
                 <div class="tag-list"><span class="tag">نمودار کلیک</span><span class="tag">آمار دقیق</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
                 <h3>کپی لینک و اشتراک‌گذاری نتایج</h3>
                 <p>افزودن منوی سه نقطه روی تمام کارت‌های نتایج جهت کپی سریع آدرس لینک و اشتراک‌گذاری در شبکه های اجتماعی.</p>
                 <div class="tag-list"><span class="tag">سه نقطه نتایج</span><span class="tag">کپی لینک</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
                 <h3>بازطراحی کامل تب‌های عکس و ویدیو</h3>
                 <p>طراحی مدرن، لایت‌باکس پیشرفته، امکان دانلود مستقیم تصاویر و ویدیوها، اشتراک‌گذاری و چیدمان شبکه‌ای شکیل.</p>
                 <div class="tag-list"><span class="tag">Lightbox</span><span class="tag">دانلود مستقیم</span></div>
@@ -793,35 +973,35 @@
 
         <div class="features-grid">
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></div>
                 <h3>نوار ناوبری شناور موبایل (Bottom Bar)</h3>
                 <p>منوی پایینی مدرن و اپلیکیشنی برای موبایل شامل آیکون‌های خانه، تاریخچه، علاقه‌مندی‌ها، کیف پول و پروفایل.</p>
                 <div class="tag-list"><span class="tag">Mobile Navigation</span><span class="tag">طراحی SaaS</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
                 <h3>سیستم اعلان‌های هدفمند (Bell)</h3>
                 <p>ارسال اعلان از پنل ادمین به تمامی کاربران، فقط کاربران پرو یا گروه خاص همراه با آیکون زنگوله و شمارنده پیام‌ها.</p>
                 <div class="tag-list"><span class="tag">اعلان پویا</span><span class="tag">زنگوله پیام</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 11.37 9.198 15.63 4 19"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 11.37 9.198 15.63 4 19"/></svg></div>
                 <h3>مدیریت زبان‌ها و ترجمه داینامیک</h3>
                 <p>افزودن زبان‌های جدید (RTL/LTR) از داخل پنل مدیریت و ویرایش آنلاین تمام کلیدهای ترجمه بدون نیاز به کدنویسی.</p>
                 <div class="tag-list"><span class="tag">Multi-Language</span><span class="tag">ویرایش آنلاین</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
                 <h3>کیبورد مجازی هوشمند</h3>
                 <p>کیبورد اختصاصی روی صفحه اصلی سرچ با پشتیبانی کامل از فارسی و انگلیسی و کلید فعال/غیرفعال‌سازی در ادمین.</p>
                 <div class="tag-list"><span class="tag">Virtual Keyboard</span><span class="tag">فارسی/انگلیسی</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
                 <h3>ارتقای سیستم کتابخانه رسانه</h3>
                 <p>رفع کامل باگ پاپ‌آپ‌های مدیریت رسانه، آپلود AJAX، اعتبارسنجی پسوندها و ذخیره‌سازی ایمن در پوشه uploads.</p>
                 <div class="tag-list"><span class="tag">Media Library</span><span class="tag">آپلود AJAX</span></div>
@@ -836,28 +1016,28 @@
 
         <div class="features-grid">
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
                 <h3>گراف دانش اختصاصی (Knowledge Graph)</h3>
                 <p>نمایش پنل اختصاصی اطلاعات شهرها، افراد و برندها در کنار نتایج سرچ به همراه گالری تصاویر و سن پویا.</p>
                 <div class="tag-list"><span class="tag">گراف دانش</span><span class="tag">اطلاعات زنده</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
                 <h3>درگاه زرین‌پال و کیف پول اختصاصی</h3>
                 <p>سیستم کامل کیف پول، شارژ آنی با درگاه زرین‌پال API v4، تراکنش‌های ایمن دیتابیس و مدیریت مالی کامل کاربران.</p>
                 <div class="tag-list"><span class="tag">زرین‌پال v4</span><span class="tag">کیف پول</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457-.312-2.841-.873-4.084"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457-.312-2.841-.873-4.084"/></svg></div>
                 <h3>سرویس «ورود با اورابل» (OAuth 2.0)</h3>
                 <p>پشتیبانی کامل از استاندارد OAuth 2.0 + PKCE جهت اجازه به سایر وب‌سایت‌ها برای افزودن ورود با حساب اورابل.</p>
                 <div class="tag-list"><span class="tag">OAuth 2.0</span><span class="tag">PKCE</span></div>
             </div>
 
             <div class="feature-card">
-                <div class="card-icon"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg></div>
+                <div class="card-icon"><svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg></div>
                 <h3>خزشگر اختصاصی ۵گانه (Web Crawlers)</h3>
                 <p>۵ خزشگر مستقل موازی با موتور cURL / SockFetcher، رعایت robots.txt، زمان‌بندی سایت‌ها و استخراج دقیق داده‌ها.</p>
                 <div class="tag-list"><span class="tag">۵ خزشگر موازی</span><span class="tag">موتور SockFetcher</span></div>
@@ -865,7 +1045,7 @@
         </div>
     </div>
 
-    <!-- منوی ناوبری موبایلی شناور و ۱۰۰٪ کاربردی -->
+    <!-- منوی ناوبری موبایلی شناور -->
     <div class="mobile-bottom-bar">
         <a href="#top" class="mobile-nav-item active">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -875,7 +1055,7 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             نسخه ۳
         </a>
-        <a href="#" class="mobile-nav-item" style="color: #10b981; font-weight: bold;">
+        <a href="#" class="mobile-nav-item" style="color: #00ff87; font-weight: bold;">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             خرید
         </a>
@@ -886,19 +1066,17 @@
     </div>
 
     <footer>
-        <p>طراحی شده باعشق و خلاقیت بی‌نظیر — اسکریپت اورابل نسخه ۳ (Orabel v3.0.0) — تمامی حقوق محفوظ است.</p>
+        <p>طراحی شده باعشق — اسکریپت اورابل نسخه ۳ (Orabel v3.0.0) — تمامی حقوق محفوظ است.</p>
     </footer>
 
-    <!-- جاوااسکریپت انیمیشن‌ها و کلیک راست سفارشی پیشرفته -->
     <script>
-        // کلیک راست سفارشی پیشرفته اورابل v3.0.0
+        // کلیک راست سفارشی اورابل v3.0.0 هولوگرافیک
         const contextMenu = document.getElementById('context-menu');
 
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             contextMenu.style.display = 'block';
             
-            // جلوگیری از بیرون زدن منو از صفحه
             const menuWidth = contextMenu.offsetWidth;
             const menuHeight = contextMenu.offsetHeight;
             const windowWidth = window.innerWidth;
@@ -922,7 +1100,7 @@
             contextMenu.style.display = 'none';
         });
 
-        // تعقیب‌کننده موس پیشرفته (Custom Cursor)
+        // تعقیب‌کننده موس نئونی (Custom Cursor)
         const cursorDot = document.getElementById('cursor-dot');
         const cursorOutline = document.getElementById('cursor-outline');
 
@@ -937,22 +1115,43 @@
             cursorOutline.style.top = `${posY}px`;
         });
 
+        // افکت ۳D Tilt روی کارت‌ها
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 10;
+                const rotateY = (centerX - x) / 10;
+                
+                card.style.transform = `translateY(-10px) scale(1.03) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px) scale(1) rotateX(0deg) rotateY(0deg)';
+            });
+        });
+
         // ایجاد ذرات پس‌زمینه متحرک پویا
         const particlesContainer = document.getElementById('particles');
-        const particleCount = 40;
+        const particleCount = 50;
 
         for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement('div');
             particle.classList.add('particle');
             
-            const size = Math.random() * 70 + 20;
+            const size = Math.random() * 80 + 20;
             particle.style.width = `${size}px`;
             particle.style.height = `${size}px`;
             
             particle.style.left = `${Math.random() * 100}vw`;
             particle.style.top = `${Math.random() * 100}vh`;
             
-            const duration = Math.random() * 8 + 6;
+            const duration = Math.random() * 7 + 5;
             particle.style.animationDuration = `${duration}s`;
             
             const delay = Math.random() * 5;
